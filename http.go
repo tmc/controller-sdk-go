@@ -3,6 +3,7 @@ package deis
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,9 +13,12 @@ import (
 )
 
 // createHTTPClient creates a HTTP Client with proper SSL options.
-func createHTTPClient(sslVerify bool) *http.Client {
+func createHTTPClient(roots *x509.CertPool, sslVerify bool) *http.Client {
 	tr := &http.Transport{
-		TLSClientConfig:   &tls.Config{InsecureSkipVerify: !sslVerify},
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: !sslVerify,
+			RootCAs:            roots,
+		},
 		DisableKeepAlives: true,
 		Proxy:             http.ProxyFromEnvironment,
 	}

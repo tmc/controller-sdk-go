@@ -57,6 +57,7 @@ import (
 	"net/url"
 
 	"github.com/goware/urlx"
+	rootcerts "github.com/hashicorp/go-rootcerts"
 )
 
 // Client oversees the interaction between the deis and controller
@@ -123,9 +124,14 @@ func New(verifySSL bool, controllerURL string, token string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	// temporary workaround to load system root certificates on darwin (workflow-cli issue #271)
+	roots, err := rootcerts.LoadSystemCAs()
+	if err != nil {
+		return nil, err
+	}
 
 	return &Client{
-		HTTPClient:    createHTTPClient(verifySSL),
+		HTTPClient:    createHTTPClient(roots, verifySSL),
 		VerifySSL:     verifySSL,
 		ControllerURL: u,
 		Token:         token,
